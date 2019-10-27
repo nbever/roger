@@ -1,9 +1,11 @@
 import { createMuiTheme } from '@material-ui/core/styles';
 
+export const PRIMARY = '#53845C';
+
 const theme = createMuiTheme({
   palette: {
     primary: {
-      main: '#53845C'
+      main: PRIMARY
     },
     secondary: {
       main: '#70A9A1'
@@ -15,6 +17,9 @@ const theme = createMuiTheme({
     text: {
       primary: "rgba(255, 255, 255, 0.87)"
     }
+  },
+  typography: {
+    fontFamily: 'Copperplate'
   }
 });
 
