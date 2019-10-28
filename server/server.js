@@ -25,17 +25,13 @@ server.use(express.json());
 server.use(expressSession({name: 'userSesson', secret: 'SPD', saveUninitialized: false, resave: false}));
 
 const sortCalls = (a, b) => {
+  return a.date > b.date ? 1 : a.date < b.date ? -1 : 0;
+};
 
-  const mA = moment(a.date);
-  const mB = moment(b.date);
-
-  return mA.isBefore(mB) ?
-    1
-    :
-    mA.isAfter(mB) ?
-      -1
-      :
-      0;
+const tellEveryone = (action, call) => {
+  serverWs.getWss().clients.forEach((client) => {
+    client.send(JSON.stringify({action: action, call}));
+  });
 };
 
 server.get('/api', (req, resp) => {
@@ -77,12 +73,11 @@ server.post('/api/call', (req, resp) => {
   const call = req.body;
   call.callId = nextCallId;
   call.status = 'OPEN';
+  call.date = moment().valueOf();
   calls.calls.push(call);
   resp.send('OK');
 
-  serverWs.getWss().clients.forEach((client) => {
-    client.send(JSON.stringify({action: 'NEW', call}));
-  });
+  tellEveryone('NEW', call);
 })
 
 server.put('/api/call/:callId', (req, resp) => {
@@ -106,7 +101,7 @@ server.put('/api/assign/:user/:callId', (req, resp) => {
   });
 
   const call = calls.calls.find((pCall) => {
-    return pCall.id === parseInt(req.params.callId);
+    return pCall.callId === parseInt(req.params.callId);
   });
 
   if (isNil(user)) {
@@ -123,15 +118,34 @@ server.put('/api/assign/:user/:callId', (req, resp) => {
 
   call.assignee = req.params.user;
   resp.send(JSON.stringify(call));
+
+  tellEveryone('ASSIGN', call);
+});
+
+server.put('/api/unassign/:callId', (req, resp) => {
+  const call = calls.calls.find((c) => {
+    return c.callId === parseInt(req.params.callId);
+  });
+
+  if (isNil(call)) {
+    return;
+  }
+
+  call.assignee = null;
+  resp.send(JSON.stringify(call));
+
+  tellEveryone('UNASSIGN', call);
 });
 
 server.delete('/api/call/:callId', (req, resp) => {
-  const newCalls = calls.calls.filter((pCall) => {
-    return pCall.callId !== parseInt(req.params.callId);
+  const callIndex = calls.calls.findIndex((pCall) => {
+    return pCall.callId === parseInt(req.params.callId);
   });
 
-  calls.calls = newCalls;
+  const doneCall = calls.calls.splice(callIndex, 1);
   resp.send('OK');
+
+  tellEveryone('COMPLETE', doneCall);
 });
 
 server.ws('/ws', (ws, req) => {

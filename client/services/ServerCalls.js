@@ -6,6 +6,9 @@ const PUT = 'PUT';
 const DELETE = 'DELETE';
 
 export const NEW = 'NEW';
+export const ASSIGN = 'ASSIGN';
+export const UNASSIGN = 'UNASSIGN';
+export const COMPLETE = 'COMPLETE';
 
 const iFetch = async (method, url, body) => {
 
@@ -42,4 +45,16 @@ export const logout = async () => {
 
 export const addCall = async (call) => {
   await iFetch(POST, '/api/call', call);
+};
+
+export const assignCall = async (call, username) => {
+  await iFetch(PUT, `/api/assign/${username}/${call.callId}`);
+};
+
+export const unassignMe = async (call) => {
+  await iFetch(PUT, `/api/unassign/${call.callId}`);
+};
+
+export const completeCall = async (call) => {
+  await iFetch(DELETE, `/api/call/${call.callId}`);
 };

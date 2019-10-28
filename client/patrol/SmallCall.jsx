@@ -27,7 +27,11 @@ const styles = makeStyles({
   },
 
   bottomRow: {
-    transform: 'scale(0.8,0.8)'
+    paddingLeft: '8px'
+  },
+
+  white: {
+    color: 'white'
   },
 
   padme: {
@@ -44,14 +48,15 @@ const SmallCall = ({call}) => {
     <div className={classes.open}>Unassigned</div>
     :
     <div className={classes.assigned}>
-      <div>{call.assignee}</div>
+      <div className={classes.padme}>{call.assignee}</div>
+      <div className={classes.padme}>:</div>
       <div>{call.status}</div>
     </div>;
 
   const icon = isNil(call.assignee) ?
     <NewReleasesIcon color="error"/>
     :
-    <AssignmentTurnedInIcon color="action"/>;
+    <AssignmentTurnedInIcon className={classes.white}/>;
 
   return (
     <div className={classes.container}>
